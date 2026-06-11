@@ -2,8 +2,8 @@ export const MODELS = [
   { id: "openai/gpt-4o-mini:free", name: "GPT-4o Mini" },
   { id: "qwen/qwen3-30b-a3b:free", name: "Qwen3 30B" },
   { id: "google/gemma-3-27b-it:free", name: "Gemma 3 27B" },
-  { id: "qwen/qwen3-coder-480b-a35b:free", name: "Qwen3 Coder 480B" },
-  { id: "nvidia/llama-3.1-nemotron-ultra-253b-v1:free", name: "Llama 3.1 Nemotron 253B" },
+  { id: "qwen/qwen3-coder:free", name: "Qwen3 Coder 480B" },
+  { id: "nvidia/nemotron-3-ultra-550b-a55b:free", name: "Llama 3.1 Nemotron 253B" },
 ];
 
 export const SYSTEM_PROMPT = `You are an expert, objective resume analyzer and ATS optimization engine.
