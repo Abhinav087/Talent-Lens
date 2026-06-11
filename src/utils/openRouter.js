@@ -97,11 +97,14 @@ JSON Schema:
  * @returns {Promise<Object>} The parsed analysis report JSON
  */
 export async function analyzeResume({ apiKey, resumeText, targetRole, onModelAttempt }) {
+  const cleanApiKey = (apiKey || "").trim();
+  const cleanTargetRole = (targetRole || "").trim();
+
   const userMessage = `Resume content:
 ${resumeText}
 
 Target job role:
-${targetRole}`;
+${cleanTargetRole}`;
 
   for (let i = 0; i < MODELS.length; i++) {
     const model = MODELS[i];
@@ -117,7 +120,7 @@ ${targetRole}`;
         method: "POST",
         signal: controller.signal,
         headers: {
-          "Authorization": `Bearer ${apiKey}`,
+          "Authorization": `Bearer ${cleanApiKey}`,
           "Content-Type": "application/json",
           "HTTP-Referer": "https://resume-analyzer.app",
           "X-Title": "Resume Analyzer"
