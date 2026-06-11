@@ -4,6 +4,9 @@ export const MODELS = [
   { id: "google/gemma-3-27b-it:free", name: "Gemma 3 27B" },
   { id: "qwen/qwen3-coder:free", name: "Qwen3 Coder 480B" },
   { id: "nvidia/nemotron-3-ultra-550b-a55b:free", name: "Llama 3.1 Nemotron 253B" },
+  // Highly stable backup models to ensure the tool always succeeds during upstream provider outages
+  { id: "google/gemma-4-31b-it:free", name: "Gemma 4 31B" },
+  { id: "openai/gpt-oss-120b:free", name: "GPT-OSS 120B" }
 ];
 
 export const SYSTEM_PROMPT = `You are an expert, objective resume analyzer and ATS optimization engine.
@@ -87,9 +90,13 @@ ${targetRole}`;
       onModelAttempt(model.name);
     }
 
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 seconds timeout
+
     try {
       const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
         method: "POST",
+        signal: controller.signal,
         headers: {
           "Authorization": `Bearer ${apiKey}`,
           "Content-Type": "application/json",
@@ -107,6 +114,8 @@ ${targetRole}`;
         })
       });
 
+      clearTimeout(timeoutId);
+
       if (!response.ok) {
         const errorText = await response.text();
         let errorMsg = errorText;
@@ -115,10 +124,11 @@ ${targetRole}`;
           errorMsg = errorJson.error?.message || errorJson.message || errorText;
         } catch (_) {}
 
-        const isFallbackable = response.status === 429 || response.status === 503 ||
+        const isFallbackable = response.status === 429 || response.status === 502 || response.status === 503 ||
           errorMsg.toLowerCase().includes("rate limit") ||
           errorMsg.toLowerCase().includes("unavailable") ||
-          errorMsg.toLowerCase().includes("overloaded");
+          errorMsg.toLowerCase().includes("overloaded") ||
+          errorMsg.toLowerCase().includes("bad gateway");
 
         if (isFallbackable && i < MODELS.length - 1) {
           console.warn(`Transient error on ${model.name}. Falling back to next model...`);
@@ -158,11 +168,16 @@ ${targetRole}`;
       }
 
     } catch (error) {
+      clearTimeout(timeoutId);
       const errorStr = error.message || String(error);
-      const isFallbackable = errorStr.toLowerCase().includes("rate limit") ||
+      const isAbort = error.name === "AbortError" || errorStr.toLowerCase().includes("aborted");
+      
+      const isFallbackable = isAbort ||
+        errorStr.toLowerCase().includes("rate limit") ||
         errorStr.toLowerCase().includes("unavailable") ||
         errorStr.toLowerCase().includes("overloaded") ||
-        errorStr.toLowerCase().includes("failed to fetch"); // Network disconnects/transient errors
+        errorStr.toLowerCase().includes("failed to fetch") ||
+        errorStr.toLowerCase().includes("bad gateway");
 
       if (isFallbackable && i < MODELS.length - 1) {
         console.warn(`Error on ${model.name}: ${errorStr}. Falling back to next model...`);
