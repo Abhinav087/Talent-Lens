@@ -12,7 +12,7 @@ import {
   Cell, 
   Tooltip 
 } from 'recharts';
-import { ArrowRight, Plus, Trash, AlertTriangle } from 'lucide-react';
+import { ArrowRight, Plus, Trash, AlertTriangle, Download } from 'lucide-react';
 
 export default function ResultsScreen({ reportData, targetRole, onReset }) {
   const {
@@ -30,8 +30,10 @@ export default function ResultsScreen({ reportData, targetRole, onReset }) {
     toAdd = [],
     toRemove = [],
     atsIssues = [],
+    learningRoadmap = [],
     interviewTopics = [],
-    marketTrends
+    marketTrends,
+    currencySymbol = "$"
   } = reportData;
 
   // Helper for ring color styling
@@ -76,8 +78,6 @@ export default function ResultsScreen({ reportData, targetRole, onReset }) {
             strokeDashoffset={strokeDashoffset} 
             strokeLinecap="round"
           />
-          {/* Render text on top, but need to rotate back to vertical to display correctly */}
-          {/* Instead of rotating the text, we can rotate the SVG parent or rotate individual text blocks inside. */}
         </svg>
         {/* Absolute positioning relative to the SVG area to display vertical text cleanly */}
         <div style={{ position: 'relative', marginTop: '-110px', height: '110px', width: '110px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
@@ -93,18 +93,47 @@ export default function ResultsScreen({ reportData, targetRole, onReset }) {
 
   const skillChartHeight = Math.max(200, skillMatch.length * 36);
 
+  // Dynamic currency formatting for charts
+  const formatYAxis = (v) => {
+    if (currencySymbol === "₹") {
+      if (v >= 100000) {
+        return `₹${(v / 100000).toFixed(0)}L`; // Lakhs for India
+      }
+      return `₹${(v / 1000).toFixed(0)}k`;
+    }
+    return `${currencySymbol}${(v / 1000).toFixed(0)}k`;
+  };
+
+  const formatTooltipSalary = (v) => {
+    if (currencySymbol === "₹") {
+      if (v >= 100000) {
+        return `₹${(v / 100000).toFixed(1)} Lakhs`;
+      }
+    }
+    return `${currencySymbol}${Number(v).toLocaleString()}`;
+  };
+
+  const handlePrint = () => {
+    window.print();
+  };
+
   return (
     <div className="results-container" style={{ width: '100%', maxWidth: '800px', margin: '0 auto', padding: '16px' }}>
       
       {/* ── HEADER ────────────────────────────────────────────────── */}
-      <div className="card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+      <div className="card results-header-card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
         <div>
           <h2 className="text-lg font-medium" style={{ color: 'var(--color-text-primary)' }}>{candidateName}</h2>
           <p className="text-sm text-muted">{targetRole}</p>
         </div>
-        <button className="btn btn-secondary text-sm" onClick={onReset}>
-          New analysis
-        </button>
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <button className="btn btn-secondary text-sm no-print" onClick={handlePrint} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <Download size={14} /> Export PDF
+          </button>
+          <button className="btn btn-secondary text-sm no-print" onClick={onReset}>
+            New analysis
+          </button>
+        </div>
       </div>
 
       {/* ── SCORES ────────────────────────────────────────────────── */}
@@ -149,7 +178,10 @@ export default function ResultsScreen({ reportData, targetRole, onReset }) {
 
       {/* ── SKILL MATCH ───────────────────────────────────────────── */}
       <div className="card">
-        <h3 className="card-title">Skill matching</h3>
+        <h3 className="card-title" style={{ marginBottom: '4px' }}>Skill matching</h3>
+        <p className="text-sm text-muted" style={{ marginBottom: '16px', lineHeight: '1.4' }}>
+          This chart measures the alignment of your resume's skills against industry expectations for the target role. It evaluates both keyword presence (coverage) and context/years of experience (depth) on a scale of 0-100%.
+        </p>
         {skillMatch.length > 0 ? (
           <div style={{ width: '100%', height: `${skillChartHeight}px` }}>
             <ResponsiveContainer width="100%" height={skillChartHeight}>
@@ -190,6 +222,52 @@ export default function ResultsScreen({ reportData, targetRole, onReset }) {
         )}
       </div>
 
+      {/* ── SKILLS GAP LEARNING ROADMAP ────────────────────────────── */}
+      {learningRoadmap.length > 0 && (
+        <div className="card page-break-avoid">
+          <h3 className="card-title" style={{ marginBottom: '4px' }}>Skills gap learning roadmap</h3>
+          <p className="text-sm text-muted" style={{ marginBottom: '20px', lineHeight: '1.4' }}>
+            Step-by-step learning roadmaps to bridge the critical skills gap found between your resume and the target job role.
+          </p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            {learningRoadmap.map((item, idx) => (
+              <div key={idx} style={{ borderBottom: idx < learningRoadmap.length - 1 ? '0.5px solid var(--color-border-tertiary)' : 'none', paddingBottom: idx < learningRoadmap.length - 1 ? '16px' : '0' }}>
+                <h4 className="text-md font-medium" style={{ color: '#534AB7', marginBottom: '12px' }}>
+                  {item.skill}
+                </h4>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', paddingLeft: '8px' }}>
+                  {item.steps.map((step, sIdx) => (
+                    <div key={sIdx} style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
+                      <div 
+                        style={{ 
+                          width: '18px', 
+                          height: '18px', 
+                          borderRadius: '50%', 
+                          backgroundColor: '#EEEDFE', 
+                          color: '#3C3489', 
+                          fontSize: '11px', 
+                          fontWeight: 500, 
+                          display: 'flex', 
+                          alignItems: 'center', 
+                          justifyContent: 'center', 
+                          flexShrink: 0,
+                          marginTop: '2px'
+                        }}
+                      >
+                        {sIdx + 1}
+                      </div>
+                      <span className="text-sm text-muted" style={{ lineHeight: '1.4' }}>
+                        {step}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* ── SALARY INSIGHTS ───────────────────────────────────────── */}
       <div className="card">
         <h3 className="card-title">Salary insights</h3>
@@ -225,11 +303,11 @@ export default function ResultsScreen({ reportData, targetRole, onReset }) {
                   tick={{ fontSize: 11, fill: "#888780" }} 
                 />
                 <YAxis 
-                  tickFormatter={v => `$${(v/1000).toFixed(0)}k`} 
+                  tickFormatter={formatYAxis} 
                   tick={{ fontSize: 11, fill: "#888780" }} 
                 />
                 <Tooltip 
-                  formatter={v => [`$${Number(v).toLocaleString()}`, "salary"]}
+                  formatter={v => [formatTooltipSalary(v), "salary"]}
                   contentStyle={{ fontSize: '12px' }}
                 />
                 <Bar dataKey="salary" fill="#185FA5" radius={[3, 3, 0, 0]} barSize={32} />

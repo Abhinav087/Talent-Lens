@@ -9,6 +9,7 @@ export default function App() {
   const [view, setView] = useState("upload"); // upload | loading | results
   const [apiKey, setApiKey] = useState("");
   const [targetRole, setTargetRole] = useState("");
+  const [notSure, setNotSure] = useState(false);
   const [file, setFile] = useState(null);
   const [error, setError] = useState(null);
   
@@ -17,7 +18,7 @@ export default function App() {
   const [reportData, setReportData] = useState(null);
 
   const handleAnalyze = async () => {
-    if (!file || !apiKey || !targetRole) return;
+    if (!file || !apiKey || (!notSure && !targetRole)) return;
     
     setError(null);
     setView("loading");
@@ -41,7 +42,7 @@ export default function App() {
       const result = await analyzeResume({
         apiKey,
         resumeText: extractedText,
-        targetRole,
+        targetRole: notSure ? "Not Sure" : targetRole,
         onModelAttempt: (modelName) => {
           setCurrentModelName(modelName);
         }
@@ -71,6 +72,8 @@ export default function App() {
     setError(null);
     setReportData(null);
     setCurrentModelName("");
+    setNotSure(false);
+    setTargetRole("");
   };
 
   return (
@@ -81,6 +84,8 @@ export default function App() {
           setApiKey={setApiKey}
           targetRole={targetRole}
           setTargetRole={setTargetRole}
+          notSure={notSure}
+          setNotSure={setNotSure}
           file={file}
           setFile={setFile}
           onAnalyze={handleAnalyze}
@@ -98,7 +103,7 @@ export default function App() {
       {view === "results" && reportData && (
         <ResultsScreen
           reportData={reportData}
-          targetRole={targetRole}
+          targetRole={reportData.detectedTargetRole || targetRole}
           onReset={handleReset}
         />
       )}

@@ -8,7 +8,9 @@ export default function UploadScreen({
   file,
   setFile,
   onAnalyze,
-  error
+  error,
+  notSure,
+  setNotSure
 }) {
   const [isDragActive, setIsDragActive] = useState(false);
   const fileInputRef = useRef(null);
@@ -54,7 +56,7 @@ export default function UploadScreen({
     return (bytes / 1024).toFixed(1) + " KB";
   };
 
-  const isFormValid = apiKey.trim() !== "" && targetRole.trim() !== "" && file !== null;
+  const isFormValid = apiKey.trim() !== "" && (notSure || targetRole.trim() !== "") && file !== null;
 
   return (
     <div className="upload-container">
@@ -119,10 +121,29 @@ export default function UploadScreen({
           <input
             id="target-role"
             type="text"
-            value={targetRole}
+            value={notSure ? "AI will auto-detect best fit" : targetRole}
             onChange={(e) => setTargetRole(e.target.value)}
             placeholder="e.g. Senior Data Scientist, Frontend Engineer..."
+            disabled={notSure}
+            style={{ opacity: notSure ? 0.6 : 1, cursor: notSure ? 'not-allowed' : 'text', marginBottom: '10px' }}
           />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <input
+              type="checkbox"
+              id="not-sure"
+              checked={notSure}
+              onChange={(e) => {
+                setNotSure(e.target.checked);
+                if (e.target.checked) {
+                  setTargetRole("");
+                }
+              }}
+              style={{ width: 'auto', margin: 0, cursor: 'pointer' }}
+            />
+            <label htmlFor="not-sure" style={{ margin: 0, textTransform: 'none', fontSize: '13px', cursor: 'pointer', fontWeight: 400 }}>
+              Not sure? Let AI detect your best-fit role
+            </label>
+          </div>
         </div>
 
         {/* Analyze Button */}

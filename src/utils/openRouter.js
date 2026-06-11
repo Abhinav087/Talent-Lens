@@ -21,11 +21,20 @@ CRITICAL RULES FOR CONSISTENCY, OBJECTIVITY & VALIDITY:
    - Match between resume content and target job expectations (relevance)
    - Formatting and structure indicators (formatting)
    - Numerical metrics and output metrics used to describe work experience (quantification)
-6. You MUST respond ONLY with a raw JSON object matching the schema below. No markdown fences (do NOT wrap in \`\`\`json), no preamble, no explanations.
+6. **Target Job Role Guidance**: If the user-provided target job role is "Not Sure", analyze the resume's experiences, education, and skills to determine the single best-fit target role for the candidate, and return it in "detectedTargetRole". If a specific target role is provided, return that exact role in "detectedTargetRole".
+7. **Local Currency salary formatting**: Detect the candidate's country/region from the resume (e.g. city/state names, phone codes, universities). Represent all salary values in that region's local currency.
+   - For USA/Default: currencySymbol is "$", stats values like "$50k-70k", trend values as plain integers (e.g. 55000, 75000).
+   - For India: currencySymbol is "₹", stats values like "₹6L-10L" or "₹12L-18L" (L = Lakhs), trend values as plain integers (e.g. 600000, 1200000).
+   - For UK: currencySymbol is "£", stats values like "£30k-45k", trend values as plain integers (e.g. 35000, 48000).
+   - For Europe: currencySymbol is "€", stats values like "€40k-60k", trend values as plain integers (e.g. 45000, 58000).
+   - Adjust other currencies similarly. If the region is unidentifiable, default to USA ($).
+8. You MUST respond ONLY with a raw JSON object matching the schema below. No markdown fences (do NOT wrap in \`\`\`json), no preamble, no explanations.
 
 JSON Schema:
 {
   "candidateName": "string",
+  "detectedTargetRole": "string (the target role being analyzed - either the user's specific target role or the AI-detected best fit target role)",
+  "currencySymbol": "string (e.g. $, ₹, £, €)",
   "atsScore": number (0-100),
   "relevanceScore": number (0-100),
   "overallScore": number (0-100),
@@ -42,17 +51,17 @@ JSON Schema:
     { "skill": "string (max 20 chars)", "match": number (0-100) }
   ],
   "salaryStats": [
-    { "label": "Entry", "value": "$X–Yk" },
-    { "label": "Mid", "value": "$X–Yk" },
-    { "label": "Senior", "value": "$X–Yk" },
+    { "label": "Entry", "value": "string (formatted with local currency symbol, e.g. $45k-60k or ₹6L-8L)" },
+    { "label": "Mid", "value": "string (formatted with local currency symbol, e.g. $80k-110k or ₹12L-16L)" },
+    { "label": "Senior", "value": "string (formatted with local currency symbol, e.g. $130k-170k or ₹22L-30L)" },
     { "label": "Demand", "value": "High" | "Medium" | "Low" }
   ],
   "salaryTrend": [
-    { "level": "Entry", "salary": number },
-    { "level": "Mid", "salary": number },
-    { "level": "Senior", "salary": number },
-    { "level": "Lead", "salary": number },
-    { "level": "Principal", "salary": number }
+    { "level": "Entry", "salary": number (plain integer in local currency, e.g. 50000 or 600000) },
+    { "level": "Mid", "salary": number (plain integer in local currency, e.g. 90000 or 1400000) },
+    { "level": "Senior", "salary": number (plain integer in local currency, e.g. 150000 or 2500000) },
+    { "level": "Lead", "salary": number (plain integer in local currency, e.g. 180000 or 3000000) },
+    { "level": "Principal", "salary": number (plain integer in local currency, e.g. 220000 or 3800000) }
   ],
   "salarySource": "string",
   "improvements": [
@@ -61,6 +70,16 @@ JSON Schema:
   "toAdd": ["string"],
   "toRemove": ["string"],
   "atsIssues": ["string"],
+  "learningRoadmap": [
+    {
+      "skill": "string (name of the skill from those recommended to add)",
+      "steps": [
+        "string (Step 1: clear actionable learning resource, course keyword, or certification)",
+        "string (Step 2: practical project or hands-on application to build)",
+        "string (Step 3: how to showcase or implement this skill on the resume)"
+      ]
+    }
+  ],
   "interviewTopics": [
     { "area": "string", "questions": ["string", "string"] }
   ],
