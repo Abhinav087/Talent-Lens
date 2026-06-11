@@ -136,10 +136,9 @@ ${cleanTargetRole}`;
         })
       });
 
-      clearTimeout(timeoutId);
-
       if (!response.ok) {
         const errorText = await response.text();
+        clearTimeout(timeoutId);
         let errorMsg = errorText;
         try {
           const errorJson = JSON.parse(errorText);
@@ -161,6 +160,7 @@ ${cleanTargetRole}`;
       }
 
       const data = await response.json();
+      clearTimeout(timeoutId);
       const rawContent = data.choices?.[0]?.message?.content;
       if (!rawContent) {
         throw new Error(`Invalid response format from ${model.name}: choices[0].message.content is empty`);
