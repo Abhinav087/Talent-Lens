@@ -1,0 +1,236 @@
+:root {
+  --color-background-page: #f6f6f7;
+  --color-background-primary: #ffffff;
+  --color-background-secondary: #fafafb;
+  --color-border-tertiary: #e4e4e7;
+  --color-text-primary: #18181b;
+  --color-text-secondary: #3f3f46;
+  --color-text-muted: #71717a;
+  
+  --font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-background-page: #09090b;
+    --color-background-primary: #18181b;
+    --color-background-secondary: #27272a;
+    --color-border-tertiary: #3f3f46;
+    --color-text-primary: #f4f4f5;
+    --color-text-secondary: #d4d4d8;
+    --color-text-muted: #a1a1aa;
+  }
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-family);
+  background-color: var(--color-background-page);
+  color: var(--color-text-primary);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Titles and Typography */
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 500;
+  color: var(--color-text-primary);
+}
+
+p, span, li, label, input, button, textarea {
+  font-family: var(--font-family);
+}
+
+/* Card layout rules */
+.card {
+  background-color: var(--color-background-primary);
+  border: 0.5px solid var(--color-border-tertiary);
+  border-radius: 12px;
+  padding: 1.25rem;
+  margin-bottom: 16px;
+}
+
+.card-title {
+  font-size: 15px;
+  font-weight: 500;
+  margin-bottom: 16px;
+  color: var(--color-text-primary);
+}
+
+/* Global design rules */
+input, select, textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 0.5px solid var(--color-border-tertiary);
+  background-color: var(--color-background-primary);
+  color: var(--color-text-primary);
+  font-size: 14px;
+  outline: none;
+  font-weight: 400;
+  transition: border-color 0.15s ease-in-out;
+}
+
+input:focus {
+  border-color: #534AB7;
+}
+
+label {
+  display: block;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  transition: opacity 0.15s ease-in-out;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background-color: #534AB7;
+  color: #ffffff;
+}
+
+.btn-primary:not(:disabled):hover {
+  background-color: #423b9d;
+}
+
+.btn-secondary {
+  background-color: var(--color-background-secondary);
+  border: 0.5px solid var(--color-border-tertiary);
+  color: var(--color-text-primary);
+}
+
+.btn-secondary:not(:disabled):hover {
+  background-color: var(--color-border-tertiary);
+}
+
+/* Animations */
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--color-border-tertiary);
+  border-top-color: #534AB7;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+/* Layout containers */
+.app-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  padding: 40px 20px;
+  justify-content: center;
+  align-items: center;
+}
+
+.upload-container {
+  width: 100%;
+  max-width: 480px;
+  margin: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Drag-and-drop PDF Zone */
+.dropzone {
+  border: 1.5px dashed var(--color-border-tertiary);
+  border-radius: 8px;
+  padding: 2rem 1.5rem;
+  background-color: var(--color-background-secondary);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease-in-out;
+}
+
+.dropzone:hover, .dropzone.active {
+  border-color: #534AB7;
+  background-color: var(--color-background-primary);
+}
+
+.dropzone.has-file {
+  border-style: solid;
+  border-color: #639922;
+  background-color: var(--color-background-primary);
+}
+
+.file-name {
+  color: var(--color-text-primary);
+  text-align: center;
+  word-break: break-all;
+}
+
+/* Error Banner styling */
+.error-banner {
+  background-color: #FCEBEB;
+  color: #791F1F;
+  border: 0.5px solid #F7C1C1;
+  border-radius: 8px;
+  padding: 10px 14px;
+  line-height: 1.4;
+}
+
+/* Utility classes */
+.text-muted {
+  color: var(--color-text-muted);
+}
+
+.text-xs {
+  font-size: 11px;
+}
+
+.text-sm {
+  font-size: 13px;
+}
+
+.text-md {
+  font-size: 14px;
+}
+
+.text-lg {
+  font-size: 15px;
+}
+
+.text-xl {
+  font-size: 22px;
+}
+
+.font-medium {
+  font-weight: 500;
+}
+
+.font-normal {
+  font-weight: 400;
+}
