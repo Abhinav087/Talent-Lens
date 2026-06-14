@@ -7,7 +7,7 @@ import { analyzeResume } from './utils/openRouter';
 
 export default function App() {
   const [view, setView] = useState("upload"); // upload | loading | results
-  const [apiKey, setApiKey] = useState("");
+  const [apiKey, setApiKey] = useState(import.meta.env.VITE_OPENROUTER_API_KEY || "");
   const [targetRole, setTargetRole] = useState("");
   const [notSure, setNotSure] = useState(false);
   const [file, setFile] = useState(null);
