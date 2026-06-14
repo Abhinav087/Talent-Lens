@@ -1,67 +1,62 @@
 export const MODELS = [
-  { id: "openai/gpt-4o-mini:free", name: "GPT-4o Mini" },
-  { id: "qwen/qwen3-30b-a3b:free", name: "Qwen3 30B" },
-  { id: "google/gemma-3-27b-it:free", name: "Gemma 3 27B" },
-  { id: "qwen/qwen3-coder:free", name: "Qwen3 Coder 480B" },
-  { id: "nvidia/nemotron-3-ultra-550b-a55b:free", name: "Llama 3.1 Nemotron 253B" },
-  // Highly stable backup models to ensure the tool always succeeds during upstream provider outages
-  { id: "google/gemma-4-31b-it:free", name: "Gemma 4 31B" },
-  { id: "openai/gpt-oss-120b:free", name: "GPT-OSS 120B" }
+  // Free models (prioritized to keep the application 100% free to use)
+  { id: "openai/gpt-4o-mini:free", name: "GPT-4o Mini (Free)" },
+  { id: "google/gemma-3-27b-it:free", name: "Gemma 3 27B (Free)" },
+  { id: "qwen/qwen3-30b-a3b:free", name: "Qwen3 30B (Free)" },
+  // Paid fallback options (only queried if free endpoints are completely down/congested)
+  { id: "openai/gpt-4o-mini", name: "GPT-4o Mini" },
+  { id: "google/gemini-2.5-flash", name: "Gemini 2.5 Flash" }
 ];
 
 export const SYSTEM_PROMPT = `You are an expert, objective resume analyzer and ATS optimization engine.
 Your task is to analyze the provided resume text against the target job role.
 
-CRITICAL RULES FOR CONSISTENCY, OBJECTIVITY & VALIDITY:
-1. Be highly deterministic and strict. Rate similar resumes consistently.
-2. Do NOT invent, hallucinate, or suggest any details, skills, or improvements unless they are highly accurate and strongly supported by the resume text and the target job description.
-3. If a field (e.g. toAdd, toRemove, improvements, atsIssues) is not applicable or you do not have high-confidence suggestions, return an empty array [] for that field. Never provide generic, template-based, or filler suggestions just to populate the array. No generic advice like 'make it look nice' or 'proofread'.
-4. Do not offer misleading or false career advice. All recommended additions/removals/improvements must be directly relevant and actionable for a candidate applying to this specific target job role.
-5. All scores (atsScore, relevanceScore, overallScore, sectionScores) must be calculated using objective criteria based on:
-   - Match between resume content and target job expectations (relevance)
-   - Formatting and structure indicators (formatting)
-   - Numerical metrics and output metrics used to describe work experience (quantification)
-6. **Target Job Role Guidance**: If the user-provided target job role is "Not Sure", analyze the resume's experiences, education, and skills to determine the single best-fit target role for the candidate, and return it in "detectedTargetRole". If a specific target role is provided, return that exact role in "detectedTargetRole".
-7. **Local Currency salary formatting**: Detect the candidate's country/region from the resume (e.g. city/state names, phone codes, universities). Represent all salary values in that region's local currency.
-   - For USA/Default: currencySymbol is "$", stats values like "$50k-70k", trend values as plain integers (e.g. 55000, 75000).
-   - For India: currencySymbol is "₹", stats values like "₹6L-10L" or "₹12L-18L" (L = Lakhs), trend values as plain integers (e.g. 600000, 1200000).
-   - For UK: currencySymbol is "£", stats values like "£30k-45k", trend values as plain integers (e.g. 35000, 48000).
-   - For Europe: currencySymbol is "€", stats values like "€40k-60k", trend values as plain integers (e.g. 45000, 58000).
-   - Adjust other currencies similarly. If the region is unidentifiable, default to USA ($).
-8. You MUST respond ONLY with a raw JSON object matching the schema below. No markdown fences (do NOT wrap in \`\`\`json), no preamble, no explanations.
+CRITICAL RULES FOR CONSISTENCY, OBJECTIVITY & SPEED:
+1. Be highly deterministic. Rate similar resumes consistently across sessions.
+2. Keep all text descriptions and details concise (1-2 sentences maximum) to maintain high analytical depth and quality while remaining fast.
+3. Limit all lists/arrays (improvements, toAdd, toRemove, atsIssues, roadmapSteps) to a maximum of 3 items.
+4. **Skill Matching**: For "skillMatch", identify the top 6-8 core technical skills required for the target job role. Evaluate the candidate's actual experience and evidence in the resume for each skill, scoring it objectively from 0-100. Do not include generic soft skills unless they are critical technical competencies.
+5. If a target company name is specified, tailor the advice, skills, and companyAlignment block using your knowledge of their business and workspace culture. If not specified, set all fields in companyAlignment to "".
+6. You MUST respond ONLY with a raw JSON object matching the schema below. No markdown, no explanations.
+
+SCORING METRICS (0-100):
+- atsScore: 90+ for standard single-column PDF layout, 70-89 for minor format/header issues, <70 for complex columns/graphics.
+- relevanceScore: 90+ for direct target role/skill matches, 70-89 for adjacent transferable roles, <70 for career switchers.
+- overallScore: Average of atsScore and relevanceScore.
+- Section Scores: Work experience (role alignment), Skills (keyword match), Education (relevance), Projects (practical work), Formatting (layout quality), Quantification (percentage of bullets with metrics: >50% = 85+, 20-49% = 70-84, <20% = <70).
 
 JSON Schema:
 {
   "candidateName": "string",
-  "detectedTargetRole": "string (the target role being analyzed - either the user's specific target role or the AI-detected best fit target role)",
-  "currencySymbol": "string (e.g. $, ₹, £, €)",
-  "atsScore": number (0-100),
-  "relevanceScore": number (0-100),
-  "overallScore": number (0-100),
-  "scoreSummary": "2 sentence plain English verdict. Must be objective and matter-of-fact.",
+  "detectedTargetRole": "string",
+  "currencySymbol": "string",
+  "atsScore": number,
+  "relevanceScore": number,
+  "overallScore": number,
+  "scoreSummary": "string (1-2 sentences)",
   "sectionScores": [
-    { "name": "Work experience", "score": number (0-100) },
-    { "name": "Skills", "score": number (0-100) },
-    { "name": "Education", "score": number (0-100) },
-    { "name": "Projects", "score": number (0-100) },
-    { "name": "Formatting", "score": number (0-100) },
-    { "name": "Quantification", "score": number (0-100) }
+    { "name": "Work experience", "score": number },
+    { "name": "Skills", "score": number },
+    { "name": "Education", "score": number },
+    { "name": "Projects", "score": number },
+    { "name": "Formatting", "score": number },
+    { "name": "Quantification", "score": number }
   ],
   "skillMatch": [
-    { "skill": "string (max 20 chars)", "match": number (0-100) }
+    { "skill": "string", "match": number }
   ],
   "salaryStats": [
-    { "label": "Entry", "value": "string (formatted with local currency symbol, e.g. $45k-60k or ₹6L-8L)" },
-    { "label": "Mid", "value": "string (formatted with local currency symbol, e.g. $80k-110k or ₹12L-16L)" },
-    { "label": "Senior", "value": "string (formatted with local currency symbol, e.g. $130k-170k or ₹22L-30L)" },
+    { "label": "Entry", "value": "string" },
+    { "label": "Mid", "value": "string" },
+    { "label": "Senior", "value": "string" },
     { "label": "Demand", "value": "High" | "Medium" | "Low" }
   ],
   "salaryTrend": [
-    { "level": "Entry", "salary": number (plain integer in local currency, e.g. 50000 or 600000) },
-    { "level": "Mid", "salary": number (plain integer in local currency, e.g. 90000 or 1400000) },
-    { "level": "Senior", "salary": number (plain integer in local currency, e.g. 150000 or 2500000) },
-    { "level": "Lead", "salary": number (plain integer in local currency, e.g. 180000 or 3000000) },
-    { "level": "Principal", "salary": number (plain integer in local currency, e.g. 220000 or 3800000) }
+    { "level": "Entry", "salary": number },
+    { "level": "Mid", "salary": number },
+    { "level": "Senior", "salary": number },
+    { "level": "Lead", "salary": number },
+    { "level": "Principal", "salary": number }
   ],
   "salarySource": "string",
   "improvements": [
@@ -72,14 +67,43 @@ JSON Schema:
   "atsIssues": ["string"],
   "learningRoadmap": [
     {
-      "skill": "string (name of the skill from those recommended to add)",
-      "steps": [
-        "string (Step 1: clear actionable learning resource, course keyword, or certification)",
-        "string (Step 2: practical project or hands-on application to build)",
-        "string (Step 3: how to showcase or implement this skill on the resume)"
+      "skill": "string",
+      "steps": ["string", "string", "string"]
+    }
+  ],
+  "careerRoadmap": {
+    "currentSeniority": "string (Junior | Mid-Level | Senior | Lead | Principal)",
+    "currentAssessment": "string (1 sentence)",
+    "potentialGrowth": "string (potential peak role in 5-10 years, e.g. Staff Engineer, CTO)",
+    "roadmapSteps": [
+      {
+        "phase": "string (e.g. Next Step)",
+        "roleTitle": "string",
+        "timeframe": "string",
+        "keyFocus": "string",
+        "potentialImpact": "string"
+      }
+    ]
+  },
+  "techToLearn": [
+    {
+      "category": "string",
+      "skills": [
+        {
+          "name": "string",
+          "priority": "High" | "Medium" | "Low",
+          "reason": "string"
+        }
       ]
     }
   ],
+  "companyAlignment": {
+    "companyName": "string",
+    "alignedGoals": "string",
+    "workspaceCulture": "string",
+    "resumeFit": "string",
+    "tailoredAdvice": "string"
+  },
   "interviewTopics": [
     { "area": "string", "questions": ["string", "string"] }
   ],
@@ -93,27 +117,31 @@ JSON Schema:
  * @param {string} params.apiKey
  * @param {string} params.resumeText
  * @param {string} params.targetRole
+ * @param {string} [params.companyName]
  * @param {Function} params.onModelAttempt
  * @returns {Promise<Object>} The parsed analysis report JSON
  */
-export async function analyzeResume({ apiKey, resumeText, targetRole, onModelAttempt }) {
+export async function analyzeResume({ apiKey, resumeText, targetRole, companyName, onModelAttempt }) {
   const cleanApiKey = (apiKey || "").trim();
   const cleanTargetRole = (targetRole || "").trim();
+  const cleanCompanyName = (companyName || "").trim();
 
   const userMessage = `Resume content:
 ${resumeText}
 
 Target job role:
-${cleanTargetRole}`;
+${cleanTargetRole}
+${cleanCompanyName ? `Target Company Name: ${cleanCompanyName}` : ""}`;
 
   for (let i = 0; i < MODELS.length; i++) {
+
     const model = MODELS[i];
     if (onModelAttempt) {
       onModelAttempt(model.name);
     }
 
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 seconds timeout (allows full JSON generation)
+    const timeoutId = setTimeout(() => controller.abort(), 25000); // 25 seconds timeout (fail-fast to next model)
 
     try {
       const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {

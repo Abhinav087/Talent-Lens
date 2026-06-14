@@ -9,6 +9,8 @@ export default function UploadScreen({
   onDisconnect,
   targetRole,
   setTargetRole,
+  companyName,
+  setCompanyName,
   file,
   setFile,
   onAnalyze,
@@ -269,6 +271,24 @@ export default function UploadScreen({
             <label htmlFor="not-sure" style={{ margin: 0, textTransform: 'none', fontSize: '13px', cursor: 'pointer', fontWeight: 400 }}>
               Not sure? Let AI detect your best-fit role
             </label>
+          </div>
+        </div>
+
+        {/* Target Company Input (Optional) */}
+        <div style={{ marginBottom: '28px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+            <label htmlFor="company-name" style={{ margin: 0 }}>Target company</label>
+            <span style={{ fontSize: '11px', color: 'var(--color-text-muted)', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Optional</span>
+          </div>
+          <input
+            id="company-name"
+            type="text"
+            value={companyName}
+            onChange={(e) => setCompanyName(e.target.value)}
+            placeholder="e.g. Google, Stripe, a local startup..."
+          />
+          <div className="text-xs text-muted" style={{ marginTop: '6px' }}>
+            AI will customize your analysis, keywords, and roadmap to fit this company's profile
           </div>
         </div>
 

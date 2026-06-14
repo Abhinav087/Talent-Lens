@@ -87,7 +87,10 @@ export default function ResultsScreen({ reportData, targetRole, onReset }) {
     learningRoadmap = [],
     interviewTopics = [],
     marketTrends,
-    currencySymbol = "$"
+    currencySymbol = "$",
+    careerRoadmap,
+    techToLearn,
+    companyAlignment
   } = reportData;
 
   const skillChartHeight = Math.max(200, skillMatch.length * 36);
@@ -149,6 +152,45 @@ export default function ResultsScreen({ reportData, targetRole, onReset }) {
           </p>
         )}
       </div>
+
+      {/* ── COMPANY ALIGNMENT ──────────────────────────────────────── */}
+      {companyAlignment && companyAlignment.companyName && (
+        <div className="card page-break-avoid">
+          <h3 className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            Tailored for {companyAlignment.companyName}
+          </h3>
+          <p className="text-sm text-muted" style={{ marginBottom: '16px', lineHeight: '1.4' }}>
+            Customized analysis aligning your background with the target company's objectives and workplace environment.
+          </p>
+          
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            {companyAlignment.alignedGoals && (
+              <div>
+                <h4 className="text-sm font-medium" style={{ color: 'var(--color-text-primary)', marginBottom: '4px' }}>Aligned Goals & Motives</h4>
+                <p className="text-sm text-muted" style={{ lineHeight: '1.5', color: 'var(--color-text-secondary)' }}>{companyAlignment.alignedGoals}</p>
+              </div>
+            )}
+            {companyAlignment.workspaceCulture && (
+              <div>
+                <h4 className="text-sm font-medium" style={{ color: 'var(--color-text-primary)', marginBottom: '4px' }}>Workspace Culture & Environment</h4>
+                <p className="text-sm text-muted" style={{ lineHeight: '1.5', color: 'var(--color-text-secondary)' }}>{companyAlignment.workspaceCulture}</p>
+              </div>
+            )}
+            {companyAlignment.resumeFit && (
+              <div style={{ padding: '12px', backgroundColor: 'var(--color-background-secondary)', borderRadius: '8px', borderLeft: '3.5px solid #3B6D11' }}>
+                <h4 className="text-sm font-medium" style={{ color: '#27500A', marginBottom: '4px' }}>Resume Fit Analysis</h4>
+                <p className="text-sm text-muted" style={{ lineHeight: '1.5', color: 'var(--color-text-secondary)' }}>{companyAlignment.resumeFit}</p>
+              </div>
+            )}
+            {companyAlignment.tailoredAdvice && (
+              <div style={{ padding: '12px', backgroundColor: 'var(--color-background-secondary)', borderRadius: '8px', borderLeft: '3.5px solid #534AB7' }}>
+                <h4 className="text-sm font-medium" style={{ color: '#3C3489', marginBottom: '4px' }}>Strategic Application Advice</h4>
+                <p className="text-sm text-muted" style={{ lineHeight: '1.5', color: 'var(--color-text-secondary)' }}>{companyAlignment.tailoredAdvice}</p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* ── SECTION BREAKDOWN ─────────────────────────────────────── */}
       <div className="card">
@@ -260,6 +302,118 @@ export default function ResultsScreen({ reportData, targetRole, onReset }) {
                       </span>
                     </div>
                   ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── CAREER PROGRESSION ROADMAP ────────────────────────────────── */}
+      {careerRoadmap && careerRoadmap.roadmapSteps && careerRoadmap.roadmapSteps.length > 0 && (
+        <div className="card page-break-avoid">
+          <h3 className="card-title" style={{ marginBottom: '4px' }}>Career progression roadmap</h3>
+          <p className="text-sm text-muted" style={{ marginBottom: '20px', lineHeight: '1.4' }}>
+            Future growth trajectory for the target role showing where you are now and your long-term potential.
+          </p>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px', marginBottom: '24px' }}>
+            <div style={{ padding: '12px 16px', backgroundColor: 'var(--color-background-secondary)', borderRadius: '8px' }}>
+              <div className="text-xs text-muted" style={{ textTransform: 'uppercase', fontWeight: 500, marginBottom: '4px' }}>Current Seniority</div>
+              <div className="text-lg font-medium" style={{ color: '#534AB7' }}>{careerRoadmap.currentSeniority}</div>
+            </div>
+            <div style={{ padding: '12px 16px', backgroundColor: 'var(--color-background-secondary)', borderRadius: '8px' }}>
+              <div className="text-xs text-muted" style={{ textTransform: 'uppercase', fontWeight: 500, marginBottom: '4px' }}>Long-Term Potential</div>
+              <div className="text-lg font-medium" style={{ color: '#3B6D11' }}>{careerRoadmap.potentialGrowth}</div>
+            </div>
+          </div>
+
+          {careerRoadmap.currentAssessment && (
+            <p className="text-sm text-muted" style={{ marginBottom: '24px', lineHeight: '1.5', padding: '12px 16px', backgroundColor: 'var(--color-background-secondary)', borderRadius: '8px', borderLeft: '3.5px solid #534AB7', color: 'var(--color-text-secondary)' }}>
+              <strong>Seniority Assessment:</strong> {careerRoadmap.currentAssessment}
+            </p>
+          )}
+
+          {/* Timeline steps */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', position: 'relative', paddingLeft: '20px', borderLeft: '2px solid var(--color-border-tertiary)' }}>
+            {careerRoadmap.roadmapSteps.map((step, idx) => (
+              <div key={idx} style={{ position: 'relative' }}>
+                {/* Bullet node on timeline */}
+                <div style={{
+                  position: 'absolute',
+                  left: '-31px',
+                  top: '2px',
+                  width: '20px',
+                  height: '20px',
+                  borderRadius: '50%',
+                  backgroundColor: 'var(--color-background-primary)',
+                  border: '3px solid #534AB7',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }} />
+                
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '8px', marginBottom: '8px' }}>
+                  <h4 className="text-md font-medium" style={{ color: 'var(--color-text-primary)' }}>{step.roleTitle}</h4>
+                  <span className="text-xs font-medium" style={{ backgroundColor: '#EEEDFE', color: '#3C3489', padding: '3px 8px', borderRadius: '4px' }}>
+                    {step.phase} ({step.timeframe})
+                  </span>
+                </div>
+                
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', paddingLeft: '4px' }}>
+                  <p className="text-sm text-muted" style={{ lineHeight: '1.4', color: 'var(--color-text-secondary)' }}>
+                    <strong>Key Advancement Focus:</strong> {step.keyFocus}
+                  </p>
+                  <p className="text-sm text-muted" style={{ lineHeight: '1.4' }}>
+                    <strong>Potential Impact:</strong> {step.potentialImpact}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── KEY TECHNOLOGIES TO MASTER ─────────────────────────────── */}
+      {techToLearn && techToLearn.length > 0 && (
+        <div className="card page-break-avoid">
+          <h3 className="card-title" style={{ marginBottom: '4px' }}>Key technologies to master</h3>
+          <p className="text-sm text-muted" style={{ marginBottom: '20px', lineHeight: '1.4' }}>
+            Categorized technologies, frameworks, and libraries to learn or strengthen for the target role.
+          </p>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            {techToLearn.map((cat, idx) => (
+              <div key={idx} style={{ borderBottom: idx < techToLearn.length - 1 ? '0.5px solid var(--color-border-tertiary)' : 'none', paddingBottom: idx < techToLearn.length - 1 ? '16px' : '0' }}>
+                <h4 className="text-sm font-medium" style={{ color: 'var(--color-text-primary)', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  {cat.category}
+                </h4>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '12px' }}>
+                  {cat.skills.map((skill, sIdx) => {
+                    const priorityColor = 
+                      skill.priority === "High" ? { bg: "#FCEBEB", text: "#791F1F", border: "#F7C1C1" } :
+                      skill.priority === "Medium" ? { bg: "#FAEEDA", text: "#633806", border: "#FAC775" } :
+                      { bg: "#EAF3DE", text: "#27500A", border: "#C0DD97" };
+
+                    return (
+                      <div key={sIdx} style={{ display: 'flex', gap: '12px', alignItems: 'flex-start', padding: '12px', backgroundColor: 'var(--color-background-secondary)', borderRadius: '8px' }}>
+                        <span className="text-xs font-medium" style={{
+                          backgroundColor: priorityColor.bg,
+                          color: priorityColor.text,
+                          border: `0.5px solid ${priorityColor.border}`,
+                          padding: '2px 8px',
+                          borderRadius: '4px',
+                          flexShrink: 0
+                        }}>
+                          {skill.priority}
+                        </span>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                          <span className="text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>{skill.name}</span>
+                          <span className="text-xs text-muted" style={{ lineHeight: '1.4' }}>{skill.reason}</span>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             ))}

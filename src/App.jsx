@@ -11,6 +11,7 @@ export default function App() {
   const [authMethod, setAuthMethod] = useState(() => localStorage.getItem("openrouter_auth_method") || "manual");
   const [isExchangingToken, setIsExchangingToken] = useState(false);
   const [targetRole, setTargetRole] = useState("");
+  const [companyName, setCompanyName] = useState("");
   const [notSure, setNotSure] = useState(false);
   const [file, setFile] = useState(null);
   const [error, setError] = useState(null);
@@ -122,6 +123,7 @@ export default function App() {
         apiKey,
         resumeText: extractedText,
         targetRole: notSure ? "Not Sure" : targetRole,
+        companyName,
         onModelAttempt: (modelName) => {
           setCurrentModelName(modelName);
         }
@@ -153,6 +155,7 @@ export default function App() {
     setCurrentModelName("");
     setNotSure(false);
     setTargetRole("");
+    setCompanyName("");
   };
 
   if (isExchangingToken) {
@@ -181,6 +184,8 @@ export default function App() {
           onDisconnect={handleDisconnect}
           targetRole={targetRole}
           setTargetRole={setTargetRole}
+          companyName={companyName}
+          setCompanyName={setCompanyName}
           notSure={notSure}
           setNotSure={setNotSure}
           file={file}
