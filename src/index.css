@@ -235,6 +235,63 @@ label {
   font-weight: 400;
 }
 
+/* Authentication Section styling */
+.auth-tabs {
+  display: flex;
+  border-bottom: 1.5px solid var(--color-border-tertiary);
+  margin-bottom: 16px;
+}
+
+.auth-tab-btn {
+  flex: 1;
+  background: none;
+  border: none;
+  padding: 10px 0;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  border-bottom: 2.5px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-radius: 0;
+  outline: none;
+}
+
+.auth-tab-btn:hover {
+  color: var(--color-text-primary);
+}
+
+.auth-tab-btn.active {
+  color: #534AB7;
+  border-bottom-color: #534AB7;
+}
+
+.connected-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  background-color: var(--color-background-secondary);
+  border: 1.5px solid #3B6D11;
+  border-radius: 8px;
+  gap: 12px;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.info-box {
+  display: flex;
+  gap: 10px;
+  padding: 12px 14px;
+  background-color: var(--color-background-secondary);
+  border-radius: 8px;
+  border: 0.5px solid var(--color-border-tertiary);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(2px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 /* Print CSS Configurations for PDF Export */
 @media print {
   body {

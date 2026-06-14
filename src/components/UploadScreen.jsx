@@ -1,8 +1,12 @@
-import React, { useState, useRef } from 'react';
+import { useState, useRef } from 'react';
+import { Link, ShieldCheck, LogOut, Info } from 'lucide-react';
+import { generateCodeVerifier, generateCodeChallenge } from '../utils/pkce';
 
 export default function UploadScreen({
   apiKey,
   setApiKey,
+  authMethod,
+  onDisconnect,
   targetRole,
   setTargetRole,
   file,
@@ -13,7 +17,24 @@ export default function UploadScreen({
   setNotSure
 }) {
   const [isDragActive, setIsDragActive] = useState(false);
+  const [activeTab, setActiveTab] = useState(authMethod === 'oauth' || !apiKey ? 'oauth' : 'manual');
   const fileInputRef = useRef(null);
+
+  const handleConnectOAuth = async () => {
+    try {
+      const verifier = generateCodeVerifier();
+      sessionStorage.setItem("or_code_verifier", verifier);
+
+      const challenge = await generateCodeChallenge(verifier);
+      const callbackUrl = encodeURIComponent(window.location.origin + window.location.pathname);
+
+      const oauthUrl = `https://openrouter.ai/auth?callback_url=${callbackUrl}&code_challenge=${challenge}&code_challenge_method=S256`;
+
+      window.location.href = oauthUrl;
+    } catch (err) {
+      console.error("Failed to initiate OAuth flow:", err);
+    }
+  };
 
   const handleDrag = (e) => {
     e.preventDefault();
@@ -68,20 +89,125 @@ export default function UploadScreen({
       </div>
 
       <div className="upload-form">
-        {/* OpenRouter API Key Input */}
-        <div style={{ marginBottom: '20px' }}>
-          <label htmlFor="api-key">OpenRouter API key</label>
-          <input
-            id="api-key"
-            type="password"
-            value={apiKey}
-            onChange={(e) => setApiKey(e.target.value)}
-            placeholder="Paste OpenRouter API key"
-            style={{ marginBottom: '6px' }}
-          />
-          <div className="text-xs text-muted">
-            Get a free key at <a href="https://openrouter.ai/keys" target="_blank" rel="noopener noreferrer" style={{ color: '#534AB7', textDecoration: 'none' }}>openrouter.ai/keys</a>
+        {/* OpenRouter Authentication Tabs */}
+        <div className="auth-section" style={{ marginBottom: '20px' }}>
+          <div className="auth-tabs" style={{ display: 'flex', borderBottom: '1.5px solid var(--color-border-tertiary)', marginBottom: '16px' }}>
+            <button
+              type="button"
+              className={`auth-tab-btn ${activeTab === 'oauth' ? 'active' : ''}`}
+              onClick={() => setActiveTab('oauth')}
+              style={{
+                flex: 1,
+                background: 'none',
+                border: 'none',
+                padding: '10px 0',
+                fontSize: '13px',
+                fontWeight: 500,
+                color: activeTab === 'oauth' ? '#534AB7' : 'var(--color-text-muted)',
+                borderBottom: activeTab === 'oauth' ? '2.5px solid #534AB7' : 'none',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+                borderRadius: '0'
+              }}
+            >
+              Connect Account
+            </button>
+            <button
+              type="button"
+              className={`auth-tab-btn ${activeTab === 'manual' ? 'active' : ''}`}
+              onClick={() => setActiveTab('manual')}
+              style={{
+                flex: 1,
+                background: 'none',
+                border: 'none',
+                padding: '10px 0',
+                fontSize: '13px',
+                fontWeight: 500,
+                color: activeTab === 'manual' ? '#534AB7' : 'var(--color-text-muted)',
+                borderBottom: activeTab === 'manual' ? '2.5px solid #534AB7' : 'none',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+                borderRadius: '0'
+              }}
+            >
+              API Key
+            </button>
           </div>
+
+          {activeTab === 'oauth' ? (
+            <div className="oauth-panel">
+              {authMethod === 'oauth' && apiKey ? (
+                <div className="connected-card" style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: '14px 16px',
+                  backgroundColor: 'var(--color-background-secondary)',
+                  border: '1px solid #3B6D11',
+                  borderRadius: '8px',
+                  gap: '12px'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <ShieldCheck size={20} color="#3B6D11" style={{ flexShrink: 0 }} />
+                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                      <span className="text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>Linked to OpenRouter</span>
+                      <span className="text-xs text-muted">Using your account credits</span>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    onClick={onDisconnect}
+                    style={{ padding: '6px 10px', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '4px', border: '1px solid var(--color-border-tertiary)' }}
+                  >
+                    <LogOut size={12} />
+                    Disconnect
+                  </button>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  <div className="info-box" style={{
+                    display: 'flex',
+                    gap: '10px',
+                    padding: '12px 14px',
+                    backgroundColor: 'var(--color-background-secondary)',
+                    borderRadius: '8px',
+                    border: '0.5px solid var(--color-border-tertiary)'
+                  }}>
+                    <Info size={16} className="text-muted" style={{ flexShrink: 0, marginTop: '2px' }} />
+                    <p className="text-xs text-muted" style={{ lineHeight: '1.4' }}>
+                      Connecting your OpenRouter account allows this app to run analyses using your own OpenRouter credit balance. No manual API keys required.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    className="btn btn-primary"
+                    onClick={handleConnectOAuth}
+                    style={{ width: '100%', padding: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+                  >
+                    <Link size={16} />
+                    Connect OpenRouter Account
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="manual-panel">
+              <label htmlFor="api-key">OpenRouter API key</label>
+              <input
+                id="api-key"
+                type="password"
+                value={authMethod === 'oauth' ? '' : apiKey}
+                onChange={(e) => setApiKey(e.target.value)}
+                placeholder={authMethod === 'oauth' ? "Connected via OAuth (Disconnect to change)" : "Paste OpenRouter API key"}
+                disabled={authMethod === 'oauth'}
+                style={{ marginBottom: '6px', opacity: authMethod === 'oauth' ? 0.6 : 1 }}
+              />
+              <div className="text-xs text-muted">
+                Get a free key at <a href="https://openrouter.ai/keys" target="_blank" rel="noopener noreferrer" style={{ color: '#534AB7', textDecoration: 'none' }}>openrouter.ai/keys</a>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Drag-and-drop PDF Zone */}

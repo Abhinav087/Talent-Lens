@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState, useEffect } from 'react';
 import UploadScreen from './components/UploadScreen';
 import LoadingScreen from './components/LoadingScreen';
 import ResultsScreen from './components/ResultsScreen';
@@ -7,7 +7,9 @@ import { analyzeResume } from './utils/openRouter';
 
 export default function App() {
   const [view, setView] = useState("upload"); // upload | loading | results
-  const [apiKey, setApiKey] = useState(import.meta.env.VITE_OPENROUTER_API_KEY || "");
+  const [apiKey, setApiKey] = useState(() => localStorage.getItem("openrouter_api_key") || import.meta.env.VITE_OPENROUTER_API_KEY || "");
+  const [authMethod, setAuthMethod] = useState(() => localStorage.getItem("openrouter_auth_method") || "manual");
+  const [isExchangingToken, setIsExchangingToken] = useState(false);
   const [targetRole, setTargetRole] = useState("");
   const [notSure, setNotSure] = useState(false);
   const [file, setFile] = useState(null);
@@ -16,6 +18,83 @@ export default function App() {
   const [activeStage, setActiveStage] = useState(0);
   const [currentModelName, setCurrentModelName] = useState("");
   const [reportData, setReportData] = useState(null);
+
+  useEffect(() => {
+    const handleOAuthCallback = async () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const code = urlParams.get("code");
+      const codeVerifier = sessionStorage.getItem("or_code_verifier");
+
+      if (code && codeVerifier) {
+        setIsExchangingToken(true);
+        setError(null);
+        
+        try {
+          const response = await fetch("https://openrouter.ai/api/v1/auth/keys", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              code,
+              code_verifier: codeVerifier,
+              code_challenge_method: "S256",
+            }),
+          });
+
+          if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.error?.message || "Failed to exchange authorization code for API key");
+          }
+
+          const data = await response.json();
+          if (data.key) {
+            localStorage.setItem("openrouter_api_key", data.key);
+            localStorage.setItem("openrouter_auth_method", "oauth");
+            setApiKey(data.key);
+            setAuthMethod("oauth");
+          } else {
+            throw new Error("No API key returned from OpenRouter authentication");
+          }
+        } catch (err) {
+          console.error("OAuth token exchange error:", err);
+          setError(`Authentication failed: ${err.message}`);
+        } finally {
+          setIsExchangingToken(false);
+          sessionStorage.removeItem("or_code_verifier");
+          // Strip the code parameter from the URL
+          const cleanUrl = window.location.origin + window.location.pathname;
+          window.history.replaceState({}, document.title, cleanUrl);
+        }
+      } else if (code) {
+        setError("Authentication failed: Missing verification context. Please try connecting again.");
+        const cleanUrl = window.location.origin + window.location.pathname;
+        window.history.replaceState({}, document.title, cleanUrl);
+      }
+    };
+
+    handleOAuthCallback();
+  }, []);
+
+  const handleSetApiKey = (key) => {
+    setApiKey(key);
+    if (key.trim()) {
+      localStorage.setItem("openrouter_api_key", key);
+      localStorage.setItem("openrouter_auth_method", "manual");
+      setAuthMethod("manual");
+    } else {
+      localStorage.removeItem("openrouter_api_key");
+      localStorage.removeItem("openrouter_auth_method");
+      setAuthMethod("manual");
+    }
+  };
+
+  const handleDisconnect = () => {
+    localStorage.removeItem("openrouter_api_key");
+    localStorage.removeItem("openrouter_auth_method");
+    setApiKey("");
+    setAuthMethod("manual");
+  };
 
   const handleAnalyze = async () => {
     if (!file || !apiKey || (!notSure && !targetRole)) return;
@@ -76,12 +155,30 @@ export default function App() {
     setTargetRole("");
   };
 
+  if (isExchangingToken) {
+    return (
+      <div className="app-container">
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '400px' }}>
+          <div className="spinner" style={{ marginBottom: '24px' }}></div>
+          <p className="text-md font-medium" style={{ color: 'var(--color-text-primary)' }}>
+            Connecting your OpenRouter account...
+          </p>
+          <p className="text-xs text-muted" style={{ marginTop: '8px' }}>
+            Completing authentication handshake
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="app-container">
       {view === "upload" && (
         <UploadScreen
           apiKey={apiKey}
-          setApiKey={setApiKey}
+          setApiKey={handleSetApiKey}
+          authMethod={authMethod}
+          onDisconnect={handleDisconnect}
           targetRole={targetRole}
           setTargetRole={setTargetRole}
           notSure={notSure}
@@ -110,3 +207,4 @@ export default function App() {
     </div>
   );
 }
+

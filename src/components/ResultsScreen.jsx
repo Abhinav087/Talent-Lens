@@ -1,4 +1,3 @@
-import React from 'react';
 import { 
   ResponsiveContainer, 
   RadarChart, 
@@ -13,6 +12,61 @@ import {
   Tooltip 
 } from 'recharts';
 import { ArrowRight, Plus, Trash, AlertTriangle, Download } from 'lucide-react';
+
+// Helper for ring color styling
+const getRingStyles = (score) => {
+  if (score >= 75) {
+    return { stroke: "#639922", ringBg: "#EAF3DE", text: "#27500A" };
+  } else if (score >= 50) {
+    return { stroke: "#BA7517", ringBg: "#FAEEDA", text: "#633806" };
+  } else {
+    return { stroke: "#E24B4A", ringBg: "#FCEBEB", text: "#791F1F" };
+  }
+};
+
+// Helper to draw SVG Score Ring
+const ScoreRing = ({ score, label }) => {
+  const r = 44;
+  const circ = 2 * Math.PI * r;
+  const strokeDashoffset = circ - (score / 100) * circ;
+  const { stroke, ringBg, text } = getRingStyles(score);
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flex: 1, minWidth: '110px' }}>
+      <svg width="110" height="110" viewBox="0 0 100 100" style={{ transform: 'rotate(-90deg)' }}>
+        {/* Background Track Circle */}
+        <circle 
+          cx="50" 
+          cy="50" 
+          r={r} 
+          fill={ringBg} 
+          stroke="#e5e7eb" 
+          strokeWidth="6" 
+        />
+        {/* Filled Score Indicator Ring */}
+        <circle 
+          cx="50" 
+          cy="50" 
+          r={r} 
+          fill="none" 
+          stroke={stroke} 
+          strokeWidth="6" 
+          strokeDasharray={circ} 
+          strokeDashoffset={strokeDashoffset} 
+          strokeLinecap="round"
+        />
+      </svg>
+      {/* Absolute positioning relative to the SVG area to display vertical text cleanly */}
+      <div style={{ position: 'relative', marginTop: '-110px', height: '110px', width: '110px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ fontSize: '22px', fontWeight: 500, color: text, lineHeight: 1 }}>{score}</div>
+        <div style={{ fontSize: '10px', color: text, opacity: 0.7, marginTop: '2px' }}>/100</div>
+      </div>
+      <div className="text-sm text-muted font-medium" style={{ marginTop: '12px', textAlign: 'center' }}>
+        {label}
+      </div>
+    </div>
+  );
+};
 
 export default function ResultsScreen({ reportData, targetRole, onReset }) {
   const {
@@ -35,61 +89,6 @@ export default function ResultsScreen({ reportData, targetRole, onReset }) {
     marketTrends,
     currencySymbol = "$"
   } = reportData;
-
-  // Helper for ring color styling
-  const getRingStyles = (score) => {
-    if (score >= 75) {
-      return { stroke: "#639922", ringBg: "#EAF3DE", text: "#27500A" };
-    } else if (score >= 50) {
-      return { stroke: "#BA7517", ringBg: "#FAEEDA", text: "#633806" };
-    } else {
-      return { stroke: "#E24B4A", ringBg: "#FCEBEB", text: "#791F1F" };
-    }
-  };
-
-  // Helper to draw SVG Score Ring
-  const ScoreRing = ({ score, label }) => {
-    const r = 44;
-    const circ = 2 * Math.PI * r;
-    const strokeDashoffset = circ - (score / 100) * circ;
-    const { stroke, ringBg, text } = getRingStyles(score);
-
-    return (
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flex: 1, minWidth: '110px' }}>
-        <svg width="110" height="110" viewBox="0 0 100 100" style={{ transform: 'rotate(-90deg)' }}>
-          {/* Background Track Circle */}
-          <circle 
-            cx="50" 
-            cy="50" 
-            r={r} 
-            fill={ringBg} 
-            stroke="#e5e7eb" 
-            strokeWidth="6" 
-          />
-          {/* Filled Score Indicator Ring */}
-          <circle 
-            cx="50" 
-            cy="50" 
-            r={r} 
-            fill="none" 
-            stroke={stroke} 
-            strokeWidth="6" 
-            strokeDasharray={circ} 
-            strokeDashoffset={strokeDashoffset} 
-            strokeLinecap="round"
-          />
-        </svg>
-        {/* Absolute positioning relative to the SVG area to display vertical text cleanly */}
-        <div style={{ position: 'relative', marginTop: '-110px', height: '110px', width: '110px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-          <div style={{ fontSize: '22px', fontWeight: 500, color: text, lineHeight: 1 }}>{score}</div>
-          <div style={{ fontSize: '10px', color: text, opacity: 0.7, marginTop: '2px' }}>/100</div>
-        </div>
-        <div className="text-sm text-muted font-medium" style={{ marginTop: '12px', textAlign: 'center' }}>
-          {label}
-        </div>
-      </div>
-    );
-  };
 
   const skillChartHeight = Math.max(200, skillMatch.length * 36);
 
